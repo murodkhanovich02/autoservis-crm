@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: autoservis
+      POSTGRES_USER: autoservis
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?.env faylida POSTGRES_PASSWORD ni kiriting}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U autoservis -d autoservis"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://autoservis:${POSTGRES_PASSWORD}@db:5432/autoservis
+      SECRET_KEY: ${SECRET_KEY:?.env faylida SECRET_KEY ni kiriting}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?.env faylida ADMIN_PASSWORD ni kiriting}
+      CORS_ORIGINS: '["${PUBLIC_URL:-http://localhost}"]'
+      TIMEZONE: Asia/Tashkent
+      SMS_PROVIDER: ${SMS_PROVIDER:-console}
+      ESKIZ_EMAIL: ${ESKIZ_EMAIL:-}
+      ESKIZ_PASSWORD: ${ESKIZ_PASSWORD:-}
+      ESKIZ_FROM: ${ESKIZ_FROM:-4546}
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${HTTP_PORT:-80}:80"
+
+volumes:
+  pgdata:

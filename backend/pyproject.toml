@@ -1,0 +1,6 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning", "ignore:.*HMAC key.*"]
+
+[tool.ruff]
+line-length = 120
